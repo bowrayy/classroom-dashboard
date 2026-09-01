@@ -91,13 +91,13 @@
     /* ===== KPI ===== */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
       margin-bottom: 16px;
     }
 
     .kpi-card {
-      min-height: 132px;
+      min-height: 118px;
       border-radius: 23px;
       padding: 18px 18px;
       display: grid;
@@ -177,7 +177,7 @@
     /* ===== MIDDLE 3 PANELS ===== */
     .main-grid {
       display: grid;
-      grid-template-columns: minmax(0, 32fr) minmax(0, 37fr) minmax(0, 31fr);
+      grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr);
       gap: 14px;
       margin-bottom: 15px;
       align-items: stretch;
@@ -542,15 +542,19 @@
     @media (max-width: 980px) {
       .main-grid { grid-template-columns: 1fr; }
       .phase-card-grid { grid-template-columns: repeat(2, 1fr); }
+      .organization-bottom .org-layout { grid-template-columns: 1fr; }
+      .organization-bottom .org-legend { grid-template-columns: repeat(3, 1fr); }
     }
-      .main-grid .panel:last-child { grid-column: 1 / -1; }
+      .phase-card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+      
       .phase-card-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (max-width: 900px) {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
       .main-grid { grid-template-columns: 1fr; }
-      .main-grid .panel:last-child { grid-column: auto; }
+      
       .org-layout { grid-template-columns: 1fr; }
       .org-legend { display: grid; grid-template-columns: repeat(3,1fr); }
     }
@@ -566,6 +570,43 @@
       .org-legend { grid-template-columns: 1fr; }
       .phase-card-grid { grid-template-columns: 1fr; }
     }
+
+    .organization-bottom {
+      margin-top: 15px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 4px 15px rgba(44, 101, 158, .035);
+    }
+
+    .organization-bottom .org-layout {
+      min-height: 330px;
+      height: auto;
+      display: grid;
+      grid-template-columns: minmax(320px, 42%) minmax(0, 58%);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .organization-bottom .org-legend {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .organization-bottom .org-row {
+      border: 1px solid #e3edf7;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfdff;
+    }
+
+    .organization-bottom .donut {
+      width: min(300px, 28vw);
+      min-width: 230px;
+    }
+
   </style>
 </head>
 <body>
@@ -622,22 +663,8 @@
     </div>
   </section>
 
-  <!-- 3 MAIN PANELS -->
+  <!-- MAIN PANELS -->
   <section class="main-grid">
-    <div class="panel">
-      <div class="panel-title">สัดส่วนข้อมูลตาม Organization</div>
-      <div class="org-layout">
-        <div class="donut-wrap">
-          <div class="donut" id="orgDonut"></div>
-          <div class="donut-center">
-            <div class="donut-total" id="donutTotal">-</div>
-            <div class="donut-label">รายการ</div>
-          </div>
-        </div>
-        <div class="org-legend" id="orgLegend"></div>
-      </div>
-    </div>
-
     <div class="panel">
       <div class="panel-title">จำนวนข้อมูลแยกตาม Phase</div>
       <div class="panel-sub">จำนวนรายการ และ Duration รวมของแต่ละ Phase</div>
@@ -654,6 +681,20 @@
   <section class="phase-section">
     <div class="phase-section-title">สรุปข้อมูลแต่ละ Phase</div>
     <div class="phase-card-grid" id="phaseCards"></div>
+  </section>
+
+  <section class="organization-bottom">
+    <div class="panel-title">สัดส่วนข้อมูลตาม Organization</div>
+    <div class="org-layout">
+      <div class="donut-wrap">
+        <div class="donut" id="orgDonut"></div>
+        <div class="donut-center">
+          <div class="donut-total" id="donutTotal">-</div>
+          <div class="donut-label">รายการ</div>
+        </div>
+      </div>
+      <div class="org-legend" id="orgLegend"></div>
+    </div>
   </section>
 
   <div class="footer">
