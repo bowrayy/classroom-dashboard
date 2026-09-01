@@ -692,16 +692,41 @@
         showMessage("ไม่พบข้อมูลในตารางที่เชื่อมต่อ");
         return;
       }
-      renderDashboard(records);
+
+      // If column mappings are available, use them. Otherwise keep the original records.
+      let mappedRecords = records;
+      try {
+        const mapped = grist.mapColumnNames(records);
+        if (mapped && Array.isArray(mapped)) {
+          mappedRecords = mapped;
+        }
+      } catch (_) {
+        // Direct column names still work when the Grist column IDs match the labels.
+      }
+
+      renderDashboard(mappedRecords);
     } catch (err) {
       console.error(err);
-      showMessage("เกิดข้อผิดพลาดขณะอ่านข้อมูลจาก Grist");
+      const detail = err && err.message ? err.message : String(err);
+      showMessage("เกิดข้อผิดพลาดขณะอ่านข้อมูลจาก Grist: " + detail);
     }
   });
 
   function renderDashboard(records) {
+    const sample = records[0] || {};
+    const required = ["Phase", "Organization", "Status", "Duration"];
+    const missing = required.filter(name => getCell(sample, name) === null);
+
+    if (missing.length) {
+      const available = Object.keys(sample).join(", ");
+      throw new Error(
+        "ไม่พบคอลัมน์: " + missing.join(", ") +
+        " | คอลัมน์ที่ Widget อ่านได้: " + available
+      );
+    }
+
     const total = records.length;
-    const durations = records.map(r => durationToSeconds(r.Duration));
+    const durations = records.map(r => durationToSeconds(getCell(r, 'Duration')));
     const totalDurationSeconds = durations.reduce((a,b) => a+b, 0);
     const withDuration = durations.filter(v => v > 0).length;
     const withoutDuration = total - withDuration;
@@ -767,7 +792,7 @@
 
     selected.forEach(item => {
       const duration = item.records.reduce(
-        (sum, r) => sum + durationToSeconds(r.Duration), 0
+        (sum, r) => sum + durationToSeconds(getCell(r, 'Duration')), 0
       );
       const height = Math.max(4, (item.count / maxCount) * 100);
 
@@ -822,11 +847,11 @@
 
     sorted.forEach((item, index) => {
       const duration = item.records.reduce(
-        (sum, r) => sum + durationToSeconds(r.Duration), 0
+        (sum, r) => sum + durationToSeconds(getCell(r, 'Duration')), 0
       );
 
       const phaseNames = [...new Set(
-        item.records.map(r => normalize(r.Phase)).filter(Boolean)
+        item.records.map(r => normalize(getCell(r, 'Phase'))).filter(Boolean)
       )];
 
       const card = document.createElement("div");
@@ -865,10 +890,35 @@
     });
   }
 
+  function getCell(record, columnName) {
+    if (!record || typeof record !== "object") return null;
+
+    // Most Grist tables use the same column ID as the visible label.
+    if (Object.prototype.hasOwnProperty.call(record, columnName)) {
+      return record[columnName];
+    }
+
+    // Common Grist-style fallbacks for renamed/imported columns.
+    const candidates = [
+      columnName.replace(/\s+/g, "_"),
+      columnName.replace(/\s+/g, ""),
+      columnName.toLowerCase(),
+      columnName.toUpperCase()
+    ];
+
+    for (const key of candidates) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        return record[key];
+      }
+    }
+
+    return null;
+  }
+
   function groupRecords(records, columnName) {
     const map = new Map();
     records.forEach(record => {
-      const name = normalize(record[columnName]) || "ไม่ระบุ";
+      const name = normalize(getCell(record, columnName)) || "ไม่ระบุ";
       if (!map.has(name)) map.set(name, []);
       map.get(name).push(record);
     });
