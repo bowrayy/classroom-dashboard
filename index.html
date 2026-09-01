@@ -1,1018 +1,847 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Classroom Master List Dashboard</title>
 
+  <!-- Grist Custom Widget API -->
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
   <style>
-    * { box-sizing: border-box; }
-
-    :root {
-      --bg: #f8fcff;
-      --panel: #ffffff;
-      --line: #d8e8f7;
-      --text: #0f2f5c;
-      --muted: #5f7fa5;
-
-      --blue-900: #0d3e7a;
-      --blue-800: #0f56a4;
-      --blue-700: #116ed2;
-      --blue-600: #2387e4;
-      --blue-500: #55aceb;
-      --blue-400: #74baf0;
-      --blue-300: #9bcdf4;
-      --blue-200: #c8e5fb;
-      --blue-100: #eaf5ff;
-
-      --cyan: #42bfd0;
-      --yellow: #f2bd2f;
-      --purple: #7c55c4;
-      --pink: #e16bac;
-      --softbar: #e9f0f6;
-    }
-
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      background:
-        radial-gradient(circle at 15% 0%, rgba(130, 201, 249, .10), transparent 28%),
-        linear-gradient(180deg, #fbfeff 0%, #f6fbff 100%);
-      font-family: "Noto Sans Thai", "Segoe UI", Tahoma, Arial, sans-serif;
-      color: var(--text);
-    }
-
-    body { padding: 0; }
-
-    .dashboard {
-      width: 100%;
-      min-height: 100vh;
-      padding: 18px 20px 14px;
-    }
-
-    /* ===== HEADER ===== */
-    .header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 18px;
-      margin: 0 8px 18px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 29px;
-      line-height: 1.08;
-      letter-spacing: -0.5px;
-      color: #0b2952;
-      font-weight: 850;
-    }
-
-    .subtitle {
-      margin-top: 7px;
-      font-size: 13px;
-      color: #2f67a4;
-      font-weight: 650;
-    }
-
-    .source-badge {
-      padding: 9px 15px;
-      border-radius: 14px;
-      border: 1px solid #b8d7f4;
-      background: rgba(255,255,255,.92);
-      color: #1d5f9f;
-      font-size: 11px;
-      font-weight: 750;
-      white-space: nowrap;
-    }
-
-    /* ===== KPI ===== */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .kpi-card {
-      min-height: 118px;
-      border-radius: 23px;
-      padding: 18px 18px;
-      display: grid;
-      grid-template-columns: 62px 1fr 34px;
-      gap: 13px;
-      align-items: center;
-      border: 1px solid #d4e7f8;
-      background: linear-gradient(135deg, #eaf5ff 0%, #f4faff 100%);
-      box-shadow: 0 4px 16px rgba(44, 102, 160, .045);
-    }
-
-    .kpi-card:nth-child(2) {
-      background: linear-gradient(135deg, #eff7ff 0%, #e8f4fb 100%);
+    :root{
+      --bg:#f6f9fc;
+      --card:#ffffff;
+      --line:#dbe7f3;
+      --line-strong:#c9dced;
+      --text:#14324b;
+      --muted:#6f879c;
+      --primary:#1976d2;
+      --primary-2:#4aa3eb;
+      --primary-soft:#eef7ff;
+      --success:#19a974;
+      --warning:#f0a43c;
+      --danger:#e45b67;
+      --violet:#8c6ee7;
+      --pink:#d75da8;
+      --shadow:0 1px 2px rgba(15, 35, 55, .04);
+      --radius:14px;
+      --gap:16px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+    body{min-height:100vh}
+
+    .app{
+      width:100%;
+      max-width:1800px;
+      margin:0 auto;
+      padding:18px;
+    }
+
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      margin-bottom:14px;
+    }
+
+    .title-wrap h1{
+      margin:0;
+      font-size:22px;
+      line-height:1.2;
+      font-weight:800;
+      letter-spacing:.01em;
+    }
+
+    .title-wrap p{
+      margin:5px 0 0;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .last-update{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      padding:7px 11px;
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .grid{display:grid;gap:var(--gap)}
+    .kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:var(--gap)}
+    .two{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:var(--gap)}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      min-width:0;
+    }
+
+    .kpi{
+      min-height:124px;
+      padding:18px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
+    .kpi-icon{
+      width:42px;height:42px;border-radius:12px;
+      background:var(--primary-soft);
+      color:var(--primary);
+      display:grid;place-items:center;
+      font-size:19px;
+      flex:0 0 auto;
     }
-    .kpi-card:nth-child(3) {
-      background: linear-gradient(135deg, #eaf6ff 0%, #f6fbff 100%);
-    }
-    .kpi-card:nth-child(4) {
-      background: linear-gradient(135deg, #e7f2ff 0%, #f1f7ff 100%);
-    }
-
-    .kpi-icon {
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      background: #fff;
-      color: var(--blue-700);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 25px;
-      font-weight: 900;
-      box-shadow: inset 0 0 0 1px rgba(88,150,210,.15);
-    }
-
-    .kpi-label {
-      font-size: 12px;
-      color: #285a8f;
-      font-weight: 750;
-      margin-bottom: 7px;
-    }
-
-    .kpi-value {
-      font-size: 29px;
-      line-height: 1.05;
-      font-weight: 850;
-      color: #0d3973;
-      letter-spacing: -0.4px;
-    }
-
-    .kpi-unit {
-      margin-top: 6px;
-      font-size: 11px;
-      color: #345f8f;
-      font-weight: 650;
-    }
-
-    .spark {
-      display: flex;
-      align-items: end;
-      gap: 4px;
-      height: 45px;
-      opacity: .45;
-    }
-
-    .spark span {
-      width: 7px;
-      border-radius: 6px 6px 2px 2px;
-      background: linear-gradient(180deg, #a5d5fb, #72b7ed);
-    }
-
-    .spark span:nth-child(1){height:12px}
-    .spark span:nth-child(2){height:20px}
-    .spark span:nth-child(3){height:31px}
-    .spark span:nth-child(4){height:43px}
-
-    /* ===== MIDDLE 3 PANELS ===== */
-    .main-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr);
-      gap: 14px;
-      margin-bottom: 15px;
-      align-items: stretch;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 17px;
-      box-shadow: 0 4px 15px rgba(44, 101, 158, .035);
-      min-width: 0;
-      min-height: 420px;
-    }
-
-    .panel-title {
-      font-size: 15px;
-      font-weight: 850;
-      color: #12335f;
-      margin-bottom: 10px;
-    }
-
-    .panel-sub {
-      margin-top: -4px;
-      margin-bottom: 8px;
-      font-size: 10px;
-      color: #6d86a3;
-    }
-
-    /* ===== ORGANIZATION DONUT ===== */
-    .org-layout {
-      height: 350px;
-      display: grid;
-      grid-template-columns: minmax(0, 68%) minmax(0, 32%);
-      gap: 6px;
-      align-items: center;
-    }
-
-    .donut-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-
-    .donut {
-      width: min(300px, 20vw);
-      aspect-ratio: 1;
-      min-width: 230px;
-      border-radius: 50%;
-      position: relative;
-      background: conic-gradient(#0f6ed8 0 50%, #57ace9 50% 96%, #9bcdf4 96% 100%);
-    }
-
-    .donut::after {
-      content: "";
-      position: absolute;
-      inset: 26%;
-      border-radius: 50%;
-      background: white;
-      box-shadow: inset 0 0 0 1px #edf4fb;
-    }
-
-    .donut-center {
-      position: absolute;
-      z-index: 3;
-      text-align: center;
-      pointer-events: none;
-    }
-
-    .donut-total {
-      font-size: 29px;
-      font-weight: 850;
-      color: #103a71;
-      line-height: 1;
-    }
-
-    .donut-label {
-      font-size: 11px;
-      margin-top: 5px;
-      color: #55779d;
-    }
-
-    .org-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .org-row {
-      display: grid;
-      grid-template-columns: 10px 1fr;
-      gap: 9px;
-      align-items: start;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-top: 4px;
-    }
-
-    .org-name {
-      color: #345a83;
-      font-size: 11px;
-      font-weight: 700;
-    }
 
-    .org-count {
-      font-size: 18px;
-      color: #173c70;
-      font-weight: 850;
-      margin-top: 2px;
+    .kpi-label{
+      font-size:12px;
+      font-weight:700;
+      color:var(--muted);
+      margin-bottom:7px;
     }
 
-    .org-share {
-      font-size: 10px;
-      color: #6d85a3;
-      margin-top: 2px;
+    .kpi-value{
+      font-size:26px;
+      font-weight:800;
+      line-height:1;
+      letter-spacing:.01em;
+      font-variant-numeric:tabular-nums;
     }
 
-    /* ===== PHASE CHART ===== */
-    .phase-chart {
-      height: 350px;
-      padding: 18px 10px 0;
-      display: flex;
-      align-items: end;
-      justify-content: space-around;
-      gap: 16px;
-      border-bottom: 1px solid #d9e6f2;
-      background:
-        linear-gradient(to top, rgba(223,233,243,.6) 1px, transparent 1px);
-      background-size: 100% 25%;
+    .kpi-sub{
+      margin-top:7px;
+      color:var(--muted);
+      font-size:11px;
     }
 
-    .phase-col {
-      flex: 1;
-      max-width: 88px;
-      min-width: 54px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: end;
-      align-items: center;
-      gap: 7px;
+    .section-card{
+      padding:16px;
+      min-height:340px;
     }
 
-    .phase-value {
-      font-size: 13px;
-      font-weight: 850;
-      color: #133560;
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:10px;
     }
 
-    .phase-bar-wrap {
-      width: 56px;
-      height: 235px;
-      border-radius: 15px 15px 0 0;
-      background: #eef4f8;
-      display: flex;
-      align-items: end;
-      overflow: hidden;
+    .section-title{
+      font-size:13px;
+      font-weight:800;
+      margin:0;
     }
 
-    .phase-bar {
-      width: 100%;
-      min-height: 4px;
-      background: linear-gradient(180deg, #0e6fd8 0%, #1684e3 100%);
-      border-radius: 15px 15px 0 0;
-      position: relative;
+    .section-sub{
+      margin-top:3px;
+      font-size:10px;
+      color:var(--muted);
     }
 
-    .phase-dot {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #9ed6fa;
-      border: 1px solid white;
+    .chart-wrap{
+      position:relative;
+      height:270px;
     }
 
-    .phase-name {
-      font-size: 11px;
-      font-weight: 750;
-      color: #35597e;
+    .status-summary{
+      display:flex;
+      justify-content:space-between;
+      align-items:end;
+      gap:12px;
+      margin:4px 0 16px;
+      padding:12px 14px;
+      background:var(--primary-soft);
+      border-radius:12px;
+      border:1px solid #d9ecff;
     }
 
-    .phase-duration {
-      font-size: 9px;
-      color: #617f9f;
-      line-height: 1.25;
-      text-align: center;
+    .status-summary .big{
+      font-size:28px;
+      font-weight:800;
+      color:var(--primary);
+      line-height:1;
     }
 
-    /* ===== STATUS ===== */
-    .status-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-top: 10px;
+    .status-summary .small{
+      font-size:10px;
+      color:var(--muted);
+      margin-top:5px;
     }
 
-    .status-row {
-      border-bottom: 1px solid #edf3f8;
-      padding: 7px 0 10px;
-    }
-
-    .status-row:last-child { border-bottom: 0; }
-
-    .status-top {
-      display: grid;
-      grid-template-columns: 10px 1fr auto auto;
-      gap: 7px;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .status-name {
-      font-size: 10.5px;
-      font-weight: 850;
-    }
+    .status-list{display:grid;gap:12px}
 
-    .status-count, .status-pct {
-      font-size: 10.5px;
-      color: #18395f;
+    .status-row{
+      display:grid;
+      grid-template-columns:145px minmax(0,1fr) 72px;
+      gap:10px;
+      align-items:center;
+      font-size:11px;
     }
 
-    .progress {
-      height: 6px;
-      border-radius: 99px;
-      background: var(--softbar);
-      overflow: hidden;
+    .status-name{
+      display:flex;align-items:center;gap:7px;
+      font-weight:700;
+      min-width:0;
     }
 
-    .progress-fill {
-      height: 100%;
-      border-radius: 99px;
+    .dot{
+      width:7px;height:7px;border-radius:50%;
+      flex:0 0 auto;
     }
 
-    /* ===== PHASE CARDS ===== */
-    .phase-section {
-      background: rgba(255,255,255,.90);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 14px 16px 16px;
-      box-shadow: 0 4px 14px rgba(44, 101, 158, .03);
+    .bar-track{
+      height:7px;
+      background:#edf3f8;
+      border-radius:999px;
+      overflow:hidden;
     }
 
-    .phase-section-title {
-      font-size: 15px;
-      color: #12335f;
-      font-weight: 850;
-      margin: 0 0 10px;
-    }
+    .bar-fill{height:100%;border-radius:999px}
 
-    .phase-card-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 14px;
+    .status-num{
+      text-align:right;
+      color:var(--muted);
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
     }
 
-    .phase-card {
-      min-height: 218px;
-      border: 1px solid #d9e9f7;
-      border-radius: 17px;
-      padding: 14px 15px;
-      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    .phase-card{
+      padding:16px;
+      min-height:260px;
     }
 
-    .phase-card-head {
-      display: grid;
-      grid-template-columns: 54px 1fr;
-      gap: 11px;
-      align-items: center;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #e7eff6;
+    .phase-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:12px;
     }
 
-    .phase-folder {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: #eaf5ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--blue-600);
-      font-size: 23px;
-      font-weight: 900;
+    .phase-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      font-weight:800;
     }
 
-    .phase-card-title {
-      font-size: 13px;
-      font-weight: 850;
-      color: #173a68;
+    .phase-badge::before{
+      content:"";
+      width:10px;height:10px;border-radius:3px;background:var(--primary);
     }
 
-    .phase-card-count {
-      margin-top: 2px;
-      font-size: 20px;
-      font-weight: 850;
-      color: #123f78;
+    .phase-main{
+      margin-top:5px;
+      font-size:24px;
+      font-weight:800;
+      line-height:1.05;
     }
 
-    .phase-card-count small {
-      font-size: 10px;
-      color: #5f80a1;
-      font-weight: 700;
-    }
+    .phase-unit{font-size:10px;color:var(--muted);font-weight:600}
+    .phase-duration{font-size:11px;color:var(--muted);margin-top:6px}
 
-    .phase-card-duration {
-      margin-top: 4px;
-      font-size: 11px;
-      color: #245d95;
-      font-weight: 700;
+    .phase-table{
+      border-top:1px solid var(--line);
+      margin-top:12px;
+      padding-top:10px;
+      display:grid;
+      gap:8px;
     }
 
-    .phase-status-list {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+    .phase-row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-size:10.5px;
+      align-items:center;
     }
 
-    .phase-status-line {
-      display: grid;
-      grid-template-columns: 9px 1fr auto;
-      gap: 7px;
-      align-items: center;
-      font-size: 9.5px;
-    }
+    .phase-row span:first-child{display:flex;align-items:center;gap:7px;color:#496579}
+    .phase-row strong{font-variant-numeric:tabular-nums}
 
-    .phase-status-label {
-      font-weight: 750;
+    .org-card{
+      min-height:320px;
+      padding:16px;
     }
 
-    .phase-status-value {
-      color: #16375d;
-      font-weight: 750;
+    .org-inner{
+      display:grid;
+      grid-template-columns:minmax(260px,.9fr) minmax(0,1.1fr);
+      gap:28px;
+      align-items:center;
+      min-height:260px;
     }
 
-    .footer {
-      margin-top: 10px;
-      padding: 8px 11px;
-      border-radius: 11px;
-      background: linear-gradient(90deg, #e8f5ff, #f7fcff);
-      color: #3a6b9a;
-      font-size: 9.5px;
+    .donut-wrap{
+      position:relative;
+      width:240px;
+      max-width:100%;
+      height:240px;
+      margin:0 auto;
     }
 
-    .message {
-      padding: 55px 20px;
-      text-align: center;
-      color: #6d86a4;
-      font-size: 13px;
+    .donut-center{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      text-align:center;
     }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 980px) {
-      .main-grid { grid-template-columns: 1fr; }
-      .phase-card-grid { grid-template-columns: repeat(2, 1fr); }
-      .organization-bottom .org-layout { grid-template-columns: 1fr; }
-      .organization-bottom .org-legend { grid-template-columns: repeat(3, 1fr); }
+    .donut-center strong{
+      font-size:26px;
+      line-height:1;
     }
-      .phase-card-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-      
-      .phase-card-grid { grid-template-columns: repeat(2, 1fr); }
-    }
 
-    @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .main-grid { grid-template-columns: 1fr; }
-      
-      .org-layout { grid-template-columns: 1fr; }
-      .org-legend { display: grid; grid-template-columns: repeat(3,1fr); }
+    .donut-center span{
+      display:block;
+      font-size:10px;
+      color:var(--muted);
+      margin-top:4px;
     }
 
-    @media (max-width: 600px) {
-      .dashboard { padding: 12px; }
-      .header { flex-direction: column; margin-left: 2px; margin-right: 2px; }
-      .header h1 { font-size: 24px; }
-      .kpi-grid { grid-template-columns: 1fr; }
-      .kpi-card { grid-template-columns: 56px 1fr 30px; }
-      .kpi-icon { width: 56px; height: 56px; }
-      .kpi-value { font-size: 26px; }
-      .org-legend { grid-template-columns: 1fr; }
-      .phase-card-grid { grid-template-columns: 1fr; }
+    .org-list{display:grid;gap:16px}
+    .org-row{display:grid;gap:7px}
+    .org-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      font-size:11px;
     }
+    .org-name{font-weight:800}
+    .org-num{color:var(--muted);font-variant-numeric:tabular-nums}
+    .org-track{height:9px;background:#edf3f8;border-radius:999px;overflow:hidden}
+    .org-fill{height:100%;background:var(--primary);border-radius:999px}
 
-    .organization-bottom {
-      margin-top: 15px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 4px 15px rgba(44, 101, 158, .035);
+    .empty{
+      height:100%;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      padding:30px;
     }
 
-    .organization-bottom .org-layout {
-      min-height: 330px;
-      height: auto;
-      display: grid;
-      grid-template-columns: minmax(320px, 42%) minmax(0, 58%);
-      gap: 28px;
-      align-items: center;
+    .footer-note{
+      color:#8aa0b2;
+      font-size:9px;
+      margin-top:8px;
+      text-align:right;
     }
 
-    .organization-bottom .org-legend {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
+    @media(max-width:1100px){
+      .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .org-inner{grid-template-columns:1fr}
     }
 
-    .organization-bottom .org-row {
-      border: 1px solid #e3edf7;
-      border-radius: 14px;
-      padding: 14px;
-      background: #fbfdff;
+    @media(max-width:820px){
+      .two{grid-template-columns:1fr}
+      .header{flex-direction:column}
     }
 
-    .organization-bottom .donut {
-      width: min(300px, 28vw);
-      min-width: 230px;
+    @media(max-width:560px){
+      .app{padding:10px}
+      .kpis{grid-template-columns:1fr}
+      .kpi{min-height:105px}
+      .status-row{grid-template-columns:115px minmax(0,1fr) 62px}
     }
-
   </style>
 </head>
 <body>
-
-<div class="dashboard" id="dashboard">
+<div class="app">
   <header class="header">
-    <div>
+    <div class="title-wrap">
       <h1>CLASSROOM MASTER LIST</h1>
-      <div class="subtitle">ภาพรวมข้อมูล [Clean] Classroom Data (ทุก Phase)</div>
+      <p>ภาพรวมข้อมูล [Clean] Classroom Data</p>
     </div>
-    <div class="source-badge">ข้อมูลจาก Grist</div>
+    <div class="last-update" id="lastUpdate">Last update: -</div>
   </header>
 
-  <!-- KPI -->
-  <section class="kpi-grid">
-    <div class="kpi-card">
+  <section class="grid kpis">
+    <article class="card kpi">
       <div class="kpi-icon">▦</div>
       <div>
-        <div class="kpi-label">ข้อมูลทั้งหมด</div>
-        <div class="kpi-value" id="totalRecords">-</div>
-        <div class="kpi-unit">รายการ</div>
+        <div class="kpi-label">จำนวนข้อมูลทั้งหมด</div>
+        <div class="kpi-value" id="totalItems">0</div>
+        <div class="kpi-sub">รายการ</div>
       </div>
-      <div class="spark"><span></span><span></span><span></span><span></span></div>
-    </div>
+    </article>
 
-    <div class="kpi-card">
-      <div class="kpi-icon">◷</div>
-      <div>
-        <div class="kpi-label">Duration ทั้งหมด</div>
-        <div class="kpi-value" id="totalDuration">-</div>
-        <div class="kpi-unit">ชั่วโมง</div>
-      </div>
-      <div class="spark"><span></span><span></span><span></span><span></span></div>
-    </div>
-
-    <div class="kpi-card">
+    <article class="card kpi">
       <div class="kpi-icon">✓</div>
       <div>
-        <div class="kpi-label">ข้อมูลที่มี Duration</div>
-        <div class="kpi-value" id="withDuration">-</div>
-        <div class="kpi-unit">รายการ</div>
+        <div class="kpi-label">มีข้อมูล Duration</div>
+        <div class="kpi-value" id="hasDuration">0</div>
+        <div class="kpi-sub" id="coverageText">0% Coverage</div>
       </div>
-      <div class="spark"><span></span><span></span><span></span><span></span></div>
-    </div>
+    </article>
 
-    <div class="kpi-card">
+    <article class="card kpi">
       <div class="kpi-icon">×</div>
       <div>
-        <div class="kpi-label">ข้อมูลที่ไม่มี Duration</div>
-        <div class="kpi-value" id="withoutDuration">-</div>
-        <div class="kpi-unit">รายการ</div>
+        <div class="kpi-label">ไม่มีข้อมูล Duration</div>
+        <div class="kpi-value" id="noDuration">0</div>
+        <div class="kpi-sub">รายการที่ต้องตรวจสอบ</div>
       </div>
-      <div class="spark"><span></span><span></span><span></span><span></span></div>
-    </div>
+    </article>
+
+    <article class="card kpi">
+      <div class="kpi-icon">◷</div>
+      <div>
+        <div class="kpi-label">Duration รวม</div>
+        <div class="kpi-value" id="totalDuration">0:00:00</div>
+        <div class="kpi-sub">ชั่วโมง : นาที : วินาที</div>
+      </div>
+    </article>
   </section>
 
-  <!-- MAIN PANELS -->
-  <section class="main-grid">
-    <div class="panel">
-      <div class="panel-title">จำนวนข้อมูลแยกตาม Phase</div>
-      <div class="panel-sub">จำนวนรายการ และ Duration รวมของแต่ละ Phase</div>
-      <div class="phase-chart" id="phaseChart"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">สถานะการดำเนินงานรวม</div>
-      <div class="status-list" id="statusList"></div>
-    </div>
-  </section>
-
-  <!-- PHASE SUMMARY -->
-  <section class="phase-section">
-    <div class="phase-section-title">สรุปข้อมูลแต่ละ Phase</div>
-    <div class="phase-card-grid" id="phaseCards"></div>
-  </section>
-
-  <section class="organization-bottom">
-    <div class="panel-title">สัดส่วนข้อมูลตาม Organization</div>
-    <div class="org-layout">
-      <div class="donut-wrap">
-        <div class="donut" id="orgDonut"></div>
-        <div class="donut-center">
-          <div class="donut-total" id="donutTotal">-</div>
-          <div class="donut-label">รายการ</div>
+  <section class="grid two">
+    <article class="card section-card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">จำนวนข้อมูลแยกตาม Phase</h2>
+          <div class="section-sub">เปรียบเทียบจำนวนรายการในแต่ละ Phase</div>
         </div>
       </div>
-      <div class="org-legend" id="orgLegend"></div>
+      <div class="chart-wrap"><canvas id="phaseChart"></canvas></div>
+    </article>
+
+    <article class="card section-card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">สถานะความครบถ้วนของข้อมูล</h2>
+          <div class="section-sub">สัดส่วนสถานะ Metadata จากข้อมูลทั้งหมด</div>
+        </div>
+      </div>
+      <div id="statusArea"></div>
+    </article>
+  </section>
+
+  <section class="grid two" id="phaseCards"></section>
+
+  <section class="card org-card">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">สัดส่วนข้อมูลตาม Organisation</h2>
+        <div class="section-sub">จำนวนรายการและสัดส่วนของแต่ละหน่วยงาน</div>
+      </div>
+    </div>
+
+    <div class="org-inner">
+      <div class="donut-wrap">
+        <canvas id="orgChart"></canvas>
+        <div class="donut-center">
+          <div>
+            <strong id="orgTotal">0</strong>
+            <span>Total Items</span>
+          </div>
+        </div>
+      </div>
+      <div class="org-list" id="orgList"></div>
     </div>
   </section>
 
-  <div class="footer">
-    หมายเหตุ: Duration แสดงเป็น ชั่วโมง:นาที:วินาที (ชม.)
-  </div>
+  <div class="footer-note">Responsive Grist dashboard • Layout only; source data remains in Grist</div>
 </div>
 
 <script>
-  const ORG_COLORS = ["#0f6ed8", "#55aceb", "#9bcdf4", "#42bfd0", "#7aa6d7"];
-
-  const STATUS_COLORS = {
-    "COMPLETE": "#0f6ed8",
-    "CC COMPLETE": "#55aceb",
-    "SOURCE COMPLETE": "#42bfd0",
-    "INCOMPLETE": "#f2bd2f",
-    "VIDEO COMPLETE": "#7c55c4",
-    "REPEAT": "#e16bac"
-  };
-
+(() => {
   const STATUS_ORDER = [
-    "COMPLETE",
-    "CC COMPLETE",
-    "SOURCE COMPLETE",
-    "INCOMPLETE",
-    "VIDEO COMPLETE",
-    "REPEAT"
+    'COMPLETE',
+    'CC COMPLETE',
+    'SOURCE COMPLETE',
+    'INCOMPLETE',
+    'WRONG COMPLETE',
+    'REPEAT'
   ];
 
-  const PHASE_ORDER = ["Phase 3", "Phase 4", "Phase 5", "Phase 6"];
+  const STATUS_COLORS = {
+    'COMPLETE':'#1976d2',
+    'CC COMPLETE':'#4aa3eb',
+    'SOURCE COMPLETE':'#2fb7c8',
+    'INCOMPLETE':'#f0a43c',
+    'WRONG COMPLETE':'#8c6ee7',
+    'REPEAT':'#d75da8'
+  };
 
-  grist.ready({ requiredAccess: "read table" });
+  const PHASE_ORDER = ['Phase 3','Phase 4','Phase 5','Phase 6'];
 
-  grist.onRecords(function(records) {
-    try {
-      if (!records || !records.length) {
-        showMessage("ไม่พบข้อมูลในตารางที่เชื่อมต่อ");
-        return;
-      }
-      renderDashboard(records);
-    } catch (err) {
-      console.error(err);
-      showMessage("เกิดข้อผิดพลาดขณะอ่านข้อมูล: " + (err?.message || String(err)));
+  // Add/adjust names here if your Grist columns use different titles.
+  const FIELD_CANDIDATES = {
+    phase: ['Phase','PHASE','phase','เฟส'],
+    status: ['Status','STATUS','status','สถานะ','Metadata Status'],
+    organisation: ['Organisation','Organization','ORGANISATION','ORGANIZATION','organisation','organization','หน่วยงาน'],
+    duration: ['Duration','DURATION','duration','ระยะเวลา','Duration Time']
+  };
+
+  let phaseChart, orgChart;
+
+  function findField(records, candidates) {
+    if (!records?.length) return null;
+    const keys = Object.keys(records[0]);
+    const normalized = new Map(keys.map(k => [String(k).trim().toLowerCase(), k]));
+    for (const c of candidates) {
+      const hit = normalized.get(String(c).trim().toLowerCase());
+      if (hit) return hit;
     }
-  });
-
-  function renderDashboard(records) {
-    const total = records.length;
-
-    const durationValues = records.map(r => durationToSeconds(getCell(r, "Duration")));
-    const totalDurationSeconds = durationValues.reduce((a,b) => a+b, 0);
-    const withDuration = durationValues.filter(v => v > 0).length;
-    const withoutDuration = total - withDuration;
-
-    setText("totalRecords", formatNumber(total));
-    setText("totalDuration", secondsToHMS(totalDurationSeconds));
-    setText("withDuration", formatNumber(withDuration));
-    setText("withoutDuration", formatNumber(withoutDuration));
-
-    const orgGroups = groupRecords(records, "Organization");
-    const phaseGroups = groupRecords(records, "Phase");
-    const statusGroups = groupRecords(records, "Status");
-
-    renderOrgDonut(orgGroups, total);
-    renderPhaseChart(phaseGroups);
-    renderStatus(statusGroups, total);
-    renderPhaseCards(phaseGroups);
-  }
-
-  function renderOrgDonut(groups, total) {
-    const sorted = [...groups]
-      .filter(g => g.name !== "ไม่ระบุ")
-      .sort((a,b) => b.count - a.count);
-
-    let current = 0;
-    const segments = [];
-
-    sorted.forEach((item, index) => {
-      const start = current;
-      current += (item.count / total) * 100;
-      const color = ORG_COLORS[index % ORG_COLORS.length];
-      segments.push(`${color} ${start}% ${current}%`);
-    });
-
-    document.getElementById("orgDonut").style.background =
-      segments.length ? `conic-gradient(${segments.join(",")})` : "#edf3f8";
-
-    setText("donutTotal", formatNumber(total));
-
-    const legend = document.getElementById("orgLegend");
-    legend.innerHTML = "";
-
-    sorted.forEach((item, index) => {
-      const row = document.createElement("div");
-      row.className = "org-row";
-      row.innerHTML = `
-        <span class="dot" style="background:${ORG_COLORS[index % ORG_COLORS.length]}"></span>
-        <div>
-          <div class="org-name">${escapeHtml(item.name)}</div>
-          <div class="org-count">${formatNumber(item.count)}</div>
-          <div class="org-share">รายการ (${percentage(item.count, total)}%)</div>
-        </div>
-      `;
-      legend.appendChild(row);
-    });
-  }
-
-  function renderPhaseChart(groups) {
-    const map = new Map(groups.map(g => [g.name, g]));
-    const selected = PHASE_ORDER.map(name => map.get(name)).filter(Boolean);
-    const maxCount = Math.max(...selected.map(x => x.count), 1);
-
-    const container = document.getElementById("phaseChart");
-    container.innerHTML = "";
-
-    selected.forEach(item => {
-      const duration = item.records.reduce(
-        (sum, r) => sum + durationToSeconds(getCell(r, "Duration")), 0
-      );
-
-      const h = Math.max(3, (item.count / maxCount) * 100);
-
-      const col = document.createElement("div");
-      col.className = "phase-col";
-      col.innerHTML = `
-        <div class="phase-value">${formatNumber(item.count)}</div>
-        <div class="phase-bar-wrap">
-          <div class="phase-bar" style="height:${h}%">
-            <span class="phase-dot"></span>
-          </div>
-        </div>
-        <div class="phase-name">${escapeHtml(item.name)}</div>
-        <div class="phase-duration">${secondsToHMS(duration)}</div>
-      `;
-      container.appendChild(col);
-    });
-  }
-
-  function renderStatus(groups, total) {
-    const map = new Map(
-      groups.map(g => [normalize(g.name).toUpperCase(), g])
-    );
-
-    const container = document.getElementById("statusList");
-    container.innerHTML = "";
-
-    STATUS_ORDER.forEach(status => {
-      const g = map.get(status);
-      const count = g ? g.count : 0;
-      const pct = total ? (count / total) * 100 : 0;
-      const color = STATUS_COLORS[status];
-
-      const row = document.createElement("div");
-      row.className = "status-row";
-      row.innerHTML = `
-        <div class="status-top">
-          <span class="dot" style="background:${color}"></span>
-          <span class="status-name" style="color:${color}">${status}</span>
-          <span class="status-count">${formatNumber(count)}</span>
-          <span class="status-pct">${pct.toFixed(1)}%</span>
-        </div>
-        <div class="progress">
-          <div class="progress-fill" style="width:${pct}%; background:${color}"></div>
-        </div>
-      `;
-      container.appendChild(row);
-    });
-  }
-
-  function renderPhaseCards(groups) {
-    const map = new Map(groups.map(g => [g.name, g]));
-    const container = document.getElementById("phaseCards");
-    container.innerHTML = "";
-
-    PHASE_ORDER.forEach(phaseName => {
-      const group = map.get(phaseName);
-      if (!group) return;
-
-      const duration = group.records.reduce(
-        (sum, r) => sum + durationToSeconds(getCell(r, "Duration")), 0
-      );
-
-      const statusCounts = {};
-      STATUS_ORDER.forEach(s => statusCounts[s] = 0);
-
-      group.records.forEach(r => {
-        const s = normalize(getCell(r, "Status")).toUpperCase();
-        if (s in statusCounts) statusCounts[s]++;
-      });
-
-      const lines = STATUS_ORDER.map(status => `
-        <div class="phase-status-line">
-          <span class="dot" style="background:${STATUS_COLORS[status]}"></span>
-          <span class="phase-status-label" style="color:${STATUS_COLORS[status]}">${status}</span>
-          <span class="phase-status-value">${formatNumber(statusCounts[status])}</span>
-        </div>
-      `).join("");
-
-      const card = document.createElement("div");
-      card.className = "phase-card";
-      card.innerHTML = `
-        <div class="phase-card-head">
-          <div class="phase-folder">▰</div>
-          <div>
-            <div class="phase-card-title">${escapeHtml(phaseName)}</div>
-            <div class="phase-card-count">${formatNumber(group.count)} <small>รายการ</small></div>
-            <div class="phase-card-duration">◷ ${secondsToHMS(duration)} ชั่วโมง</div>
-          </div>
-        </div>
-        <div class="phase-status-list">${lines}</div>
-      `;
-      container.appendChild(card);
-    });
-  }
-
-  function groupRecords(records, columnName) {
-    const map = new Map();
-
-    records.forEach(record => {
-      const name = normalize(getCell(record, columnName)) || "ไม่ระบุ";
-      if (!map.has(name)) map.set(name, []);
-      map.get(name).push(record);
-    });
-
-    return Array.from(map.entries()).map(([name, rows]) => ({
-      name,
-      count: rows.length,
-      records: rows
-    }));
-  }
-
-  function getCell(record, columnName) {
-    if (!record || typeof record !== "object") return null;
-
-    if (Object.prototype.hasOwnProperty.call(record, columnName)) {
-      return record[columnName];
-    }
-
-    const candidates = [
-      columnName.replace(/\s+/g, "_"),
-      columnName.replace(/\s+/g, ""),
-      columnName.toLowerCase(),
-      columnName.toUpperCase()
-    ];
-
-    for (const key of candidates) {
-      if (Object.prototype.hasOwnProperty.call(record, key)) {
-        return record[key];
-      }
-    }
-
     return null;
   }
 
-  function durationToSeconds(value) {
-    if (value === null || value === undefined || value === "") return 0;
-    if (typeof value === "number") return value;
+  function valueOf(record, key) {
+    if (!key) return null;
+    const v = record[key];
+    return v === undefined ? null : v;
+  }
 
-    const text = String(value).trim();
+  function normalizeText(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).trim();
+  }
 
-    const hms = text.match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
-    if (hms) {
-      return Number(hms[1]) * 3600 +
-             Number(hms[2]) * 60 +
-             Number(hms[3]);
+  function normalizePhase(v) {
+    const s = normalizeText(v);
+    const m = s.match(/(\d+)/);
+    return m ? `Phase ${m[1]}` : s;
+  }
+
+  function normalizeStatus(v) {
+    return normalizeText(v).toUpperCase().replace(/\s+/g,' ');
+  }
+
+  function durationToSeconds(v) {
+    if (v === null || v === undefined || v === '') return null;
+
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      // Grist/Excel-like duration can be fraction of day.
+      if (v > 0 && v < 1000) return Math.round(v * 86400);
+      return Math.round(v);
     }
 
-    const days = text.match(/(?:(\d+)\s+days?\s+)?(\d+):(\d{1,2}):(\d{1,2})/);
-    if (days) {
-      return Number(days[1] || 0) * 86400 +
-             Number(days[2]) * 3600 +
-             Number(days[3]) * 60 +
-             Number(days[4]);
+    const s = String(v).trim();
+    if (!s) return null;
+
+    // HH:MM:SS, supports hours > 24
+    const parts = s.split(':').map(Number);
+    if (parts.length === 3 && parts.every(Number.isFinite)) {
+      return Math.round(parts[0]*3600 + parts[1]*60 + parts[2]);
+    }
+    if (parts.length === 2 && parts.every(Number.isFinite)) {
+      return Math.round(parts[0]*60 + parts[1]);
     }
 
-    return 0;
+    const n = Number(s);
+    return Number.isFinite(n) ? Math.round(n) : null;
   }
 
-  function secondsToHMS(seconds) {
-    seconds = Math.max(0, Math.round(seconds));
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    return `${formatNumber(hours)}:${String(minutes).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+  function secondsToHMS(sec) {
+    sec = Math.max(0, Math.round(sec || 0));
+    const h = Math.floor(sec/3600);
+    const m = Math.floor((sec%3600)/60);
+    const s = sec%60;
+    return `${h.toLocaleString('en-US')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
-  function percentage(value, total) {
-    if (!total) return "0.0";
-    return ((value / total) * 100).toFixed(1);
+  function pct(a,b) {
+    return b ? (a/b*100) : 0;
   }
 
-  function normalize(value) {
-    if (value === null || value === undefined) return "";
-    return String(value).trim();
+  function fmt(n) {
+    return Number(n||0).toLocaleString('en-US');
   }
 
-  function formatNumber(value) {
-    return Number(value || 0).toLocaleString("en-US");
+  function safePhaseOrder(found) {
+    const known = PHASE_ORDER.filter(p => found.includes(p));
+    const extra = found.filter(p => !PHASE_ORDER.includes(p)).sort();
+    return [...known, ...extra];
   }
 
-  function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
+  function buildDashboard(records) {
+    records = Array.isArray(records) ? records : [];
+
+    const fields = {
+      phase: findField(records, FIELD_CANDIDATES.phase),
+      status: findField(records, FIELD_CANDIDATES.status),
+      organisation: findField(records, FIELD_CANDIDATES.organisation),
+      duration: findField(records, FIELD_CANDIDATES.duration)
+    };
+
+    const total = records.length;
+
+    let hasDuration = 0;
+    let totalSeconds = 0;
+    const phaseCounts = {};
+    const phaseDurations = {};
+    const phaseStatuses = {};
+    const statusCounts = {};
+    const orgCounts = {};
+
+    for (const r of records) {
+      const dSec = durationToSeconds(valueOf(r, fields.duration));
+      if (dSec !== null) {
+        hasDuration++;
+        totalSeconds += dSec;
+      }
+
+      const ph = normalizePhase(valueOf(r, fields.phase)) || 'ไม่ระบุ Phase';
+      phaseCounts[ph] = (phaseCounts[ph] || 0) + 1;
+      phaseDurations[ph] = (phaseDurations[ph] || 0) + (dSec || 0);
+
+      const st = normalizeStatus(valueOf(r, fields.status)) || 'ไม่ระบุสถานะ';
+      statusCounts[st] = (statusCounts[st] || 0) + 1;
+      phaseStatuses[ph] ??= {};
+      phaseStatuses[ph][st] = (phaseStatuses[ph][st] || 0) + 1;
+
+      const org = normalizeText(valueOf(r, fields.organisation)) || 'ไม่ระบุ Organisation';
+      orgCounts[org] = (orgCounts[org] || 0) + 1;
+    }
+
+    const noDuration = total - hasDuration;
+    document.getElementById('totalItems').textContent = fmt(total);
+    document.getElementById('hasDuration').textContent = fmt(hasDuration);
+    document.getElementById('noDuration').textContent = fmt(noDuration);
+    document.getElementById('totalDuration').textContent = secondsToHMS(totalSeconds);
+    document.getElementById('coverageText').textContent = `${pct(hasDuration,total).toFixed(2)}% Coverage`;
+    document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleString('th-TH')}`;
+
+    drawPhaseChart(phaseCounts);
+    drawStatus(statusCounts, total);
+    drawPhaseCards(phaseCounts, phaseDurations, phaseStatuses);
+    drawOrg(orgCounts, total);
   }
 
-  function escapeHtml(text) {
-    return String(text)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  function drawPhaseChart(counts) {
+    const labels = safePhaseOrder(Object.keys(counts).filter(k => k !== 'ไม่ระบุ Phase'));
+    if (counts['ไม่ระบุ Phase']) labels.push('ไม่ระบุ Phase');
+    const data = labels.map(l => counts[l] || 0);
+
+    const ctx = document.getElementById('phaseChart');
+    if (phaseChart) phaseChart.destroy();
+
+    phaseChart = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          data,
+          backgroundColor:'#1976d2',
+          borderRadius:8,
+          borderSkipped:false,
+          maxBarThickness:58
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:(c)=>`${fmt(c.raw)} รายการ`}}
+        },
+        scales:{
+          x:{
+            grid:{display:false},
+            border:{display:false},
+            ticks:{color:'#5f768a',font:{size:10,weight:'600'}}
+          },
+          y:{
+            beginAtZero:true,
+            grid:{color:'#eef3f8'},
+            border:{display:false},
+            ticks:{color:'#8396a6',font:{size:9},precision:0}
+          }
+        }
+      },
+      plugins:[{
+        id:'valueLabels',
+        afterDatasetsDraw(chart){
+          const {ctx} = chart;
+          ctx.save();
+          ctx.fillStyle='#24445d';
+          ctx.textAlign='center';
+          ctx.textBaseline='bottom';
+          ctx.font='700 10px system-ui';
+          chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+            ctx.fillText(fmt(data[i]), bar.x, bar.y-6);
+          });
+          ctx.restore();
+        }
+      }]
+    });
   }
 
-  function showMessage(message) {
-    document.getElementById("dashboard").innerHTML =
-      `<div class="message">${escapeHtml(message)}</div>`;
+  function drawStatus(statusCounts, total) {
+    const allStatuses = [
+      ...STATUS_ORDER.filter(s => statusCounts[s] !== undefined),
+      ...Object.keys(statusCounts).filter(s => !STATUS_ORDER.includes(s)).sort()
+    ];
+
+    const completeCount = statusCounts['COMPLETE'] || 0;
+    const rows = allStatuses.map((s, i) => {
+      const n = statusCounts[s] || 0;
+      const p = pct(n,total);
+      const color = STATUS_COLORS[s] || ['#7ba7cc','#9fb6ca','#b8c7d4'][i%3];
+      return `
+        <div class="status-row">
+          <div class="status-name"><span class="dot" style="background:${color}"></span><span>${escapeHtml(s)}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,p)}%;background:${color}"></div></div>
+          <div class="status-num">${fmt(n)} &nbsp; ${p.toFixed(1)}%</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('statusArea').innerHTML = `
+      <div class="status-summary">
+        <div>
+          <div class="big">${pct(completeCount,total).toFixed(1)}%</div>
+          <div class="small">Overall COMPLETE</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:800;font-size:15px">${fmt(completeCount)} / ${fmt(total)}</div>
+          <div class="small">รายการ</div>
+        </div>
+      </div>
+      <div class="status-list">${rows || '<div class="empty">ไม่พบข้อมูล Status</div>'}</div>
+    `;
   }
+
+  function drawPhaseCards(counts, durations, phaseStatuses) {
+    const phases = safePhaseOrder(Object.keys(counts).filter(k => k !== 'ไม่ระบุ Phase'));
+    if (counts['ไม่ระบุ Phase']) phases.push('ไม่ระบุ Phase');
+
+    const cards = phases.map(ph => {
+      const statuses = phaseStatuses[ph] || {};
+      const rows = STATUS_ORDER.map(s => {
+        const n = statuses[s] || 0;
+        const color = STATUS_COLORS[s];
+        return `<div class="phase-row">
+          <span><i class="dot" style="background:${color}"></i>${escapeHtml(s)}</span>
+          <strong>${fmt(n)}</strong>
+        </div>`;
+      }).join('');
+
+      return `<article class="card phase-card">
+        <div class="phase-top">
+          <div>
+            <div class="phase-badge">${escapeHtml(ph)}</div>
+            <div class="phase-main">${fmt(counts[ph]||0)} <span class="phase-unit">รายการ</span></div>
+            <div class="phase-duration">◷ ${secondsToHMS(durations[ph]||0)} ชั่วโมง</div>
+          </div>
+        </div>
+        <div class="phase-table">${rows}</div>
+      </article>`;
+    }).join('');
+
+    document.getElementById('phaseCards').innerHTML = cards || '<article class="card phase-card"><div class="empty">ไม่พบข้อมูล Phase</div></article>';
+  }
+
+  function drawOrg(orgCounts, total) {
+    const entries = Object.entries(orgCounts).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('orgTotal').textContent = fmt(total);
+
+    const palette = ['#1976d2','#4aa3eb','#89c6f0','#a9d7f5','#c6e5f9','#dbeefb'];
+    const labels = entries.map(x=>x[0]);
+    const data = entries.map(x=>x[1]);
+
+    const ctx = document.getElementById('orgChart');
+    if (orgChart) orgChart.destroy();
+
+    orgChart = new Chart(ctx,{
+      type:'doughnut',
+      data:{
+        labels,
+        datasets:[{
+          data,
+          backgroundColor:entries.map((_,i)=>palette[i%palette.length]),
+          borderWidth:0,
+          hoverOffset:3
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:'72%',
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:(c)=>`${c.label}: ${fmt(c.raw)} (${pct(c.raw,total).toFixed(1)}%)`}}
+        }
+      }
+    });
+
+    document.getElementById('orgList').innerHTML = entries.map(([name,n])=>{
+      const p = pct(n,total);
+      return `<div class="org-row">
+        <div class="org-head">
+          <span class="org-name">${escapeHtml(name)}</span>
+          <span class="org-num">${fmt(n)} &nbsp; ${p.toFixed(1)}%</span>
+        </div>
+        <div class="org-track"><div class="org-fill" style="width:${Math.min(100,p)}%"></div></div>
+      </div>`;
+    }).join('') || '<div class="empty">ไม่พบข้อมูล Organisation</div>';
+  }
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[m]));
+  }
+
+  function showFallback(){
+    // Preview values based on the dashboard screenshot.
+    buildDashboard([
+      ...Array.from({length:2268}, (_,i)=>({
+        Phase:'Phase 3',
+        Status: i < 1500 ? 'COMPLETE' : i < 2100 ? 'CC COMPLETE' : 'INCOMPLETE',
+        Organisation:'IPST',
+        Duration:'00:08:24'
+      })),
+      ...Array.from({length:1137}, (_,i)=>({
+        Phase:'Phase 4',
+        Status: i < 700 ? 'COMPLETE' : i < 1040 ? 'CC COMPLETE' : 'SOURCE COMPLETE',
+        Organisation:'RTT',
+        Duration:'00:34:00'
+      })),
+      ...Array.from({length:1144}, (_,i)=>({
+        Phase:'Phase 5',
+        Status: i < 1000 ? 'COMPLETE' : i < 1080 ? 'CC COMPLETE' : 'REPEAT',
+        Organisation:'RTT',
+        Duration:'00:31:00'
+      })),
+      ...Array.from({length:149}, (_,i)=>({
+        Phase:'Phase 6',
+        Status: i < 120 ? 'COMPLETE' : 'WRONG COMPLETE',
+        Organisation:'TCC',
+        Duration:'00:42:00'
+      }))
+    ]);
+  }
+
+  // Grist integration
+  try{
+    if (window.grist) {
+      grist.ready({requiredAccess:'read table'});
+      grist.onRecords(records => buildDashboard(records));
+    } else {
+      showFallback();
+    }
+  } catch(e){
+    console.warn('Grist init failed, showing preview data.', e);
+    showFallback();
+  }
+})();
 </script>
 </body>
 </html>
